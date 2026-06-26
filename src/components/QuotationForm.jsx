@@ -39,7 +39,7 @@ const QuotationForm = ({ formData, setFormData }) => {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 gap-4">
           <div className="space-y-1.5">
             <label className="block text-xs font-bold text-slate-500 uppercase tracking-wide">
               Customer Name
@@ -54,18 +54,6 @@ const QuotationForm = ({ formData, setFormData }) => {
           </div>
           <div className="space-y-1.5">
             <label className="block text-xs font-bold text-slate-500 uppercase tracking-wide">
-              Company Name
-            </label>
-            <input
-              type="text"
-              value={formData.companyName}
-              onChange={(e) => handleInputChange('companyName', e.target.value)}
-              placeholder="e.g. Acme Corp"
-              className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/10 text-sm transition-all"
-            />
-          </div>
-          <div className="space-y-1.5 md:col-span-2">
-            <label className="block text-xs font-bold text-slate-500 uppercase tracking-wide">
               Address
             </label>
             <textarea
@@ -74,18 +62,6 @@ const QuotationForm = ({ formData, setFormData }) => {
               rows="3"
               placeholder="e.g. 123 Solar Way, Sunnyville"
               className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/10 text-sm transition-all resize-none"
-            />
-          </div>
-          <div className="space-y-1.5 md:col-span-2">
-            <label className="block text-xs font-bold text-slate-500 uppercase tracking-wide">
-              Phone Number
-            </label>
-            <input
-              type="tel"
-              value={formData.phoneNumber}
-              onChange={(e) => handleInputChange('phoneNumber', e.target.value)}
-              placeholder="e.g. +1 (555) 000-0000"
-              className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/10 text-sm transition-all"
             />
           </div>
         </div>
@@ -104,90 +80,34 @@ const QuotationForm = ({ formData, setFormData }) => {
           </div>
           <div>
             <h2 className="text-lg font-bold text-slate-800">Quotation Information</h2>
-            <p className="text-xs text-slate-500">Reference number, dates and contract parameters</p>
+            <p className="text-xs text-slate-500">Dates and validity period</p>
           </div>
         </div>
 
-        <div className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-1.5">
-              <label className="block text-xs font-bold text-slate-500 uppercase tracking-wide">
-                Quotation Number
-              </label>
-              <input
-                type="text"
-                value={formData.quotationNumber}
-                onChange={(e) => handleInputChange('quotationNumber', e.target.value)}
-                placeholder="e.g. QT-2026-001"
-                className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/10 text-sm transition-all font-semibold text-slate-700"
-              />
-            </div>
-            <div className="space-y-1.5">
-              <label className="block text-xs font-bold text-slate-500 uppercase tracking-wide">
-                Date
-              </label>
-              <div className="relative">
-                <input
-                  type="date"
-                  value={formData.date}
-                  onChange={(e) => handleInputChange('date', e.target.value)}
-                  className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/10 text-sm transition-all"
-                />
-              </div>
-            </div>
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-1.5">
-              <label className="block text-xs font-bold text-slate-500 uppercase tracking-wide">
-                Valid Until
-              </label>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="space-y-1.5">
+            <label className="block text-xs font-bold text-slate-500 uppercase tracking-wide">
+              Date
+            </label>
+            <div className="relative">
               <input
                 type="date"
-                value={formData.validUntil}
-                onChange={(e) => handleInputChange('validUntil', e.target.value)}
-                className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/10 text-sm transition-all"
-              />
-            </div>
-            <div className="space-y-1.5">
-              <label className="block text-xs font-bold text-slate-500 uppercase tracking-wide">
-                Sales Representative
-              </label>
-              <input
-                type="text"
-                value={formData.salesPerson}
-                onChange={(e) => handleInputChange('salesPerson', e.target.value)}
-                placeholder="Name of agent"
+                value={formData.date}
+                onChange={(e) => handleInputChange('date', e.target.value)}
                 className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/10 text-sm transition-all"
               />
             </div>
           </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-1.5">
-              <label className="block text-xs font-bold text-slate-500 uppercase tracking-wide">
-                Delivery Timeframe
-              </label>
-              <input
-                type="text"
-                value={formData.deliveryTime}
-                onChange={(e) => handleInputChange('deliveryTime', e.target.value)}
-                placeholder="e.g. 7-10 Days"
-                className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/10 text-sm transition-all"
-              />
-            </div>
-            <div className="space-y-1.5">
-              <label className="block text-xs font-bold text-slate-500 uppercase tracking-wide">
-                Payment Terms
-              </label>
-              <input
-                type="text"
-                value={formData.paymentTerms}
-                onChange={(e) => handleInputChange('paymentTerms', e.target.value)}
-                placeholder="e.g. 50% Advance, 50% Delivery"
-                className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/10 text-sm transition-all"
-              />
-            </div>
+          <div className="space-y-1.5">
+            <label className="block text-xs font-bold text-slate-500 uppercase tracking-wide">
+              Valid Until
+            </label>
+            <input
+              type="date"
+              value={formData.validUntil}
+              onChange={(e) => handleInputChange('validUntil', e.target.value)}
+              className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/10 text-sm transition-all"
+            />
           </div>
         </div>
       </motion.div>
@@ -269,51 +189,6 @@ const QuotationForm = ({ formData, setFormData }) => {
                 className="w-full pl-7 pr-3 py-3 border border-slate-100 rounded-xl bg-slate-50 text-slate-800 text-sm font-extrabold"
               />
             </div>
-          </div>
-        </div>
-      </motion.div>
-
-      {/* Notes & Terms Section Card */}
-      <motion.div 
-        variants={cardVariants}
-        initial="hidden"
-        animate="visible"
-        className="bg-white rounded-2xl p-5 md:p-6 shadow-soft border border-slate-100/80 hover:shadow-premium transition-all duration-300"
-      >
-        <div className="flex items-center space-x-2.5 mb-5 pb-3 border-b border-slate-100">
-          <div className="p-2 bg-primary/10 rounded-xl text-primary">
-            <FileCheck className="w-5 h-5" />
-          </div>
-          <div>
-            <h2 className="text-lg font-bold text-slate-800">Notes & Terms</h2>
-            <p className="text-xs text-slate-500">Fine print and comments regarding this quotation</p>
-          </div>
-        </div>
-
-        <div className="space-y-4">
-          <div className="space-y-1.5">
-            <label className="block text-xs font-bold text-slate-500 uppercase tracking-wide">
-              Terms & Conditions
-            </label>
-            <textarea
-              value={formData.terms}
-              onChange={(e) => handleInputChange('terms', e.target.value)}
-              rows="4"
-              placeholder="e.g. Standard warranties apply. Dynamic price variations subject to vendor inventory."
-              className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/10 text-sm transition-all resize-none"
-            />
-          </div>
-          <div className="space-y-1.5">
-            <label className="block text-xs font-bold text-slate-500 uppercase tracking-wide">
-              Additional Notes
-            </label>
-            <textarea
-              value={formData.notes}
-              onChange={(e) => handleInputChange('notes', e.target.value)}
-              rows="3"
-              placeholder="e.g. Thank you for choosing Abdullah Traders Solar Solutions!"
-              className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/10 text-sm transition-all resize-none"
-            />
           </div>
         </div>
       </motion.div>

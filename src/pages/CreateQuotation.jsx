@@ -14,15 +14,9 @@ const CreateQuotation = () => {
   // Initial form data
   const initialFormData = {
     customerName: '',
-    companyName: '',
     address: '',
-    phoneNumber: '',
-    quotationNumber: '',
     date: new Date().toISOString().split('T')[0],
     validUntil: '',
-    salesPerson: '',
-    deliveryTime: '',
-    paymentTerms: '',
     products: [
       {
         id: Date.now(),
@@ -34,8 +28,6 @@ const CreateQuotation = () => {
     ],
     discount: 0,
     taxRate: 0,
-    terms: '',
-    notes: '',
   };
 
   const [formData, setFormData] = useState(initialFormData);
@@ -55,7 +47,15 @@ const CreateQuotation = () => {
     if (isPrinting || !previewRef.current) return;
     setIsPrinting(true);
 
-    // Gather ALL stylesheets from the current page
+    // Gather ALL stylesheets from the current page. This already
+    // includes the #quotation-preview-print-css <style> tag that
+    // QuotationPreview.jsx injects into document.head, which contains
+    // the correct "HYBRID STRATEGY" @media print rules (min-height,
+    // natural multi-page flow, repeating <thead>, footer pinned only
+    // when there's leftover space on a short quotation). We must NOT
+    // re-declare .print-container rules below — doing so previously
+    // re-introduced a fixed-height + overflow:hidden clip that
+    // silently dropped any rows (and the footer) past page 1.
     const styleSheets = Array.from(document.styleSheets)
       .map((sheet) => {
         try {
@@ -99,10 +99,14 @@ const CreateQuotation = () => {
           <meta name="viewport" content="width=device-width, initial-scale=1.0" />
           <title>Quotation-${formData?.quotationNumber || 'Draft'}</title>
           <style>
-            /* All styles from the parent page */
+            /* All styles from the parent page — this already carries
+               the correct multi-page print rules from
+               QuotationPreview.jsx's injected <style id="quotation-preview-print-css">.
+               Do NOT add another .print-container height/overflow
+               override here; see comment above handlePrint. */
             ${styleSheets}
 
-            /* Print-specific overrides */
+            /* Print-specific overrides that DON'T fight pagination */
             @page {
               size: A4;
               margin: 8mm 10mm;
@@ -123,18 +127,6 @@ const CreateQuotation = () => {
             body {
               width: 210mm;
             }
-
-            .print-container {
-              width: 100% !important;
-              max-width: 100% !important;
-              margin: 0 !important;
-              box-shadow: none !important;
-              border-radius: 0 !important;
-            }
-
-            table { page-break-inside: auto; }
-            tr    { page-break-inside: avoid; page-break-after: auto; }
-            thead { display: table-header-group; }
           </style>
         </head>
         <body>

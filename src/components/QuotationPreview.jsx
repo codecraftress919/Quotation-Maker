@@ -9,10 +9,42 @@ import { calculateSubTotal } from '../utils/calculations';
    PDF / print regardless of browser or react-to-print version
 ───────────────────────────────────────────────────────────── */
 const PRINT_CSS = `
+  /*
+    HYBRID STRATEGY — pinned footer on short quotations,
+    natural multi-page flow on long ones.
+
+    The container uses min-height (not a hard height + overflow:
+    hidden). On a SHORT quotation, the flex column is exactly one
+    page's content height, and margin-top: auto on the partner-
+    brands/footer block consumes the leftover space, pinning the
+    footer to the bottom edge — like a real letterhead.
+
+    On a LONG quotation (many product rows), the flex column's
+    natural content height exceeds one page. margin-top: auto has
+    no leftover space to consume in that case, so it collapses to
+    0 and the footer simply follows the last row in normal flow.
+    The browser's own pagination then inserts as many additional
+    pages as needed — nothing is clipped, and the table header
+    repeats on each new page (thead { display: table-header-group }).
+
+    This replaces an earlier version that used a hard height +
+    overflow: hidden to guarantee the pinned-footer look. That
+    approach silently clipped any rows (and the footer) once
+    content exceeded one page — which is what happened once real
+    quotations grew past ~28 line items. Multi-page correctness
+    has to take priority over the pinned-bottom look once a
+    document can plausibly run long.
+  */
+  @media screen {
+    .print-container {
+      min-height: 297mm;
+    }
+  }
+
   @media print {
     @page {
       size: A4;
-      margin: 8mm 10mm;
+      margin: 8mm;
     }
 
     html, body {
@@ -22,6 +54,7 @@ const PRINT_CSS = `
       -webkit-print-color-adjust: exact !important;
       print-color-adjust: exact !important;
       color-adjust: exact !important;
+      font-size: 10px !important;
     }
 
     /* Hide everything outside the print container */
@@ -36,11 +69,25 @@ const PRINT_CSS = `
     .print-container {
       width: 100% !important;
       max-width: 100% !important;
+      /* One page's content area (297mm page minus 8mm top + 8mm
+         bottom @page margin = 281mm) as a MINIMUM, not a cap.
+         Short content stretches to fill it (so the footer can be
+         pinned via margin-top:auto below); long content simply
+         grows taller and flows onto additional pages normally. */
+      min-height: 281mm !important;
+      height: auto !important;
+      max-height: none !important;
+      overflow: visible !important;
       margin: 0 !important;
       padding: 0 !important;
       box-shadow: none !important;
       border-radius: 0 !important;
-      page-break-inside: avoid;
+      font-size: 10px !important;
+    }
+
+    /* Reduce body content padding */
+    #quotation-print-root > div:nth-child(2) {
+      padding: 8px 10px !important;
     }
 
     /* Force background colors to print */
@@ -49,20 +96,78 @@ const PRINT_CSS = `
       print-color-adjust: exact !important;
     }
 
-    table { page-break-inside: auto; }
+    /* Table page breaks — thead repeating on every page is what
+       makes long, multi-page tables still readable on page 2+. */
+    table { page-break-inside: auto; font-size: 9px !important; }
     tr    { page-break-inside: avoid; page-break-after: auto; }
     thead { display: table-header-group; }
     tfoot { display: table-footer-group; }
 
-    .signature-section {
+    /* Pin partner-brands + footer to the bottom ONLY when there's
+       leftover space (i.e. short quotations). On long quotations
+       this margin collapses to 0 automatically — no JS detection
+       needed, it's just how flex auto-margins behave. */
+    #quotation-print-root > div:nth-last-child(2) {
+      margin-top: auto !important;
+    }
+
+    #quotation-print-root > div:last-child {
       page-break-inside: avoid;
+    }
+
+    /* Ensure images print properly.
+       SCOPED to exclude the header (div:first-child) — this rule
+       was written for the small partner-brand logos in the footer
+       area, but a bare "img" selector with !important also caught
+       Header.jsx's headerImg (h-32, ~128px) and header2Img (h-14,
+       ~56px), crushing both down to 40px in print. The :not()
+       below excludes any <img> inside the header block so it can
+       keep its own intended size (set explicitly further down). */
+    #quotation-print-root > div:not(:first-child) img {
+      max-height: 40px !important;
+      width: auto !important;
+      -webkit-print-color-adjust: exact !important;
+      print-color-adjust: exact !important;
+    }
+
+    /* Header images keep their on-screen proportions in print
+       instead of inheriting the page's default img sizing. These
+       mirror Header.jsx's Tailwind classes (h-32 / h-14) so print
+       output matches what's shown on screen. Adjust here if the
+       Tailwind classes in Header.jsx ever change. */
+    #quotation-print-root > div:first-child img {
+      width: auto !important;
+      -webkit-print-color-adjust: exact !important;
+      print-color-adjust: exact !important;
+    }
+
+    #quotation-print-root > div:first-child img[alt="Abdullah Traders Solar"] {
+      max-height: 90px !important;
+    }
+
+    #quotation-print-root > div:first-child img[alt="Abdullah Traders Logo"] {
+      max-height: 42px !important;
+    }
+
+    /* Previously this also forced the HEADER (div:first-child) to
+       9px, which crushed the company name/contact info down to an
+       unreadable size in print. The header should keep its own
+       internal type hierarchy (Header.jsx controls that) — only
+       the footer gets a slight size reduction here since it's
+       just fine print / contact details. */
+    #quotation-print-root > div:last-child {
+      font-size: 9px !important;
     }
   }
 `;
 
 if (typeof document !== 'undefined') {
   const id = 'quotation-preview-print-css';
-  if (!document.getElementById(id)) {
+  const existing = document.getElementById(id);
+  if (existing) {
+    // Replace in place in case this module re-runs with updated CSS
+    existing.innerHTML = PRINT_CSS;
+  } else {
     const style = document.createElement('style');
     style.id = id;
     style.innerHTML = PRINT_CSS;
@@ -102,22 +207,9 @@ const QuotationPreview = forwardRef(({ formData }, ref) => {
       maximumFractionDigits: 2,
     });
 
-  const termLines = formData.terms
-    ? formData.terms.split('\n').filter((l) => l.trim())
-    : [
-        'Prices are subject to change without prior notice.',
-        'This quotation is valid for the period mentioned above.',
-        'Payment must be made as per terms mentioned.',
-        'Any bank charges will be borne by the customer.',
-      ];
-
   const infoRows = [
-    ['Quotation No',   formData.quotationNumber || 'Draft'],
     ['Quotation Date', formatDate(formData.date)],
-    formData.validUntil    ? ['Valid Till',      formatDate(formData.validUntil)] : null,
-    formData.paymentTerms  ? ['Payment Terms',   formData.paymentTerms]           : null,
-    formData.deliveryTime  ? ['Delivery Time',   formData.deliveryTime]           : null,
-    formData.salesPerson   ? ['Sales Person',    formData.salesPerson]            : null,
+    formData.validUntil ? ['Valid Till', formatDate(formData.validUntil)] : null,
   ].filter(Boolean);
 
   /* ── styles ─────────────────────────────────────── */
@@ -156,7 +248,8 @@ const QuotationPreview = forwardRef(({ formData }, ref) => {
         width: '100%',
         maxWidth: '210mm',
         margin: '0 auto',
-        minHeight: '297mm',
+        /* minHeight removed from inline style — handled by the
+           screen-only @media rule above so print can flow freely */
         display: 'flex',
         flexDirection: 'column',
         fontFamily: "'Inter', 'Segoe UI', Arial, sans-serif",
@@ -200,14 +293,8 @@ const QuotationPreview = forwardRef(({ formData }, ref) => {
             <p style={{ margin: '0 0 2px', fontWeight: '700', fontSize: '12px', color: DARK }}>
               {formData.customerName || 'Customer Name'}
             </p>
-            {formData.companyName && (
-              <p style={{ margin: '0 0 2px', color: MID }}>{formData.companyName}</p>
-            )}
             {formData.address && (
               <p style={{ margin: '0 0 2px', color: MID, whiteSpace: 'pre-line' }}>{formData.address}</p>
-            )}
-            {formData.phoneNumber && (
-              <p style={{ margin: 0, color: MID }}>Phone: {formData.phoneNumber}</p>
             )}
           </div>
 
@@ -280,28 +367,8 @@ const QuotationPreview = forwardRef(({ formData }, ref) => {
           </tbody>
         </table>
 
-        {/* TERMS + TOTALS */}
-        <div style={{ display: 'flex', gap: '20px', alignItems: 'flex-start', marginBottom: '16px' }}>
-
-          {/* Left – Terms */}
-          <div style={{ flex: 1 }}>
-            <p style={{
-              margin: '0 0 6px', fontWeight: '800', fontSize: '11px',
-              color: DARK, textTransform: 'uppercase', letterSpacing: '0.5px',
-            }}>
-              TERMS &amp; CONDITIONS
-            </p>
-            <ul style={{ margin: 0, paddingLeft: '14px', color: MID, lineHeight: '1.7', fontSize: '10.5px' }}>
-              {termLines.map((line, i) => (
-                <li key={i} style={{ marginBottom: '2px' }}>{line}</li>
-              ))}
-            </ul>
-            <p style={{ marginTop: '12px', color: GREEN, fontStyle: 'italic', fontSize: '11px', fontWeight: '600' }}>
-              Thank you for giving us the opportunity to serve you.
-            </p>
-          </div>
-
-          {/* Right – Totals */}
+        {/* TOTALS */}
+        <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '16px' }}>
           <div style={{ minWidth: '220px' }}>
             <table style={{
               width: '100%', borderCollapse: 'collapse',
@@ -363,16 +430,6 @@ const QuotationPreview = forwardRef(({ formData }, ref) => {
                 </tr>
               </tbody>
             </table>
-          </div>
-        </div>
-
-        {/* AUTHORIZED SIGNATURE */}
-        <div className="signature-section" style={{ marginTop: '24px', marginBottom: '16px' }}>
-          <div style={{ width: '140px' }}>
-            <div style={{ height: '36px', borderBottom: `1.5px solid ${DARK}`, marginBottom: '6px' }} />
-            <p style={{ margin: 0, fontSize: '10px', fontWeight: '700', color: DARK }}>
-              Authorized Signature
-            </p>
           </div>
         </div>
       </div>
