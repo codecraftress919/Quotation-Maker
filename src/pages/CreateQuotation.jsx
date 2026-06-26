@@ -4,7 +4,6 @@ import { ChevronLeft, Eye, RotateCcw, Sun, Sparkles, X, Printer, Download } from
 import { motion } from 'framer-motion';
 import QuotationForm from '../components/QuotationForm';
 import QuotationPreview from '../components/QuotationPreview';
-import html2canvas from 'html2canvas';
 
 const CreateQuotation = () => {
   const navigate = useNavigate();
@@ -52,36 +51,122 @@ const CreateQuotation = () => {
   };
 
   // Print quotation and save to gallery
-  const handlePrint = async () => {
-    if (!previewRef.current || isPrinting) return;
+  const handlePrint = () => {
+    if (isPrinting || !previewRef.current) return;
     setIsPrinting(true);
 
-    try {
-      // Use html2canvas to capture the preview as an image
-      const canvas = await html2canvas(previewRef.current, {
-        scale: 2, // Higher quality
-        useCORS: true,
-        logging: false,
-      });
+    // Gather ALL stylesheets from the current page
+    const styleSheets = Array.from(document.styleSheets)
+      .map((sheet) => {
+        try {
+          return Array.from(sheet.cssRules)
+            .map((rule) => rule.cssText)
+            .join('\n');
+        } catch {
+          // Cross-origin sheets — link them by href instead
+          if (sheet.href) {
+            return `@import url("${sheet.href}");`;
+          }
+          return '';
+        }
+      })
+      .join('\n');
 
-      // Convert to blob and download
-      canvas.toBlob((blob) => {
-        const url = URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = `Quotation-${formData.quotationNumber || 'Draft'}-${Date.now()}.png`;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        URL.revokeObjectURL(url);
-        setIsPrinting(false);
-      });
-    } catch (error) {
-      console.error('Error generating image:', error);
-      // Fallback to browser print
-      window.print();
-      setIsPrinting(false);
-    }
+    // Clone the quotation HTML
+    const contentHTML = previewRef.current.outerHTML;
+
+    // Create a hidden iframe
+    const iframe = document.createElement('iframe');
+    iframe.style.cssText = `
+      position: fixed;
+      top: -10000px;
+      left: -10000px;
+      width: 210mm;
+      height: 297mm;
+      border: none;
+      opacity: 0;
+      pointer-events: none;
+    `;
+    document.body.appendChild(iframe);
+
+    const iframeDoc = iframe.contentWindow.document;
+    iframeDoc.open();
+    iframeDoc.write(`
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <meta charset="UTF-8" />
+          <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+          <title>Quotation-${formData?.quotationNumber || 'Draft'}</title>
+          <style>
+            /* All styles from the parent page */
+            ${styleSheets}
+
+            /* Print-specific overrides */
+            @page {
+              size: A4;
+              margin: 8mm 10mm;
+            }
+
+            * {
+              -webkit-print-color-adjust: exact !important;
+              print-color-adjust: exact !important;
+              color-adjust: exact !important;
+            }
+
+            html, body {
+              margin: 0 !important;
+              padding: 0 !important;
+              background: #ffffff !important;
+            }
+
+            body {
+              width: 210mm;
+            }
+
+            .print-container {
+              width: 100% !important;
+              max-width: 100% !important;
+              margin: 0 !important;
+              box-shadow: none !important;
+              border-radius: 0 !important;
+            }
+
+            table { page-break-inside: auto; }
+            tr    { page-break-inside: avoid; page-break-after: auto; }
+            thead { display: table-header-group; }
+          </style>
+        </head>
+        <body>
+          ${contentHTML}
+        </body>
+      </html>
+    `);
+    iframeDoc.close();
+
+    // Wait for iframe to fully load, then print
+    iframe.onload = () => {
+      setTimeout(() => {
+        try {
+          iframe.contentWindow.focus();
+          iframe.contentWindow.print();
+        } catch (e) {
+          console.error('iframe print failed:', e);
+          // Fallback: open in new window
+          const win = window.open('', '_blank', 'width=800,height=900');
+          win.document.write(iframeDoc.documentElement.outerHTML);
+          win.document.close();
+          win.focus();
+          win.print();
+          win.close();
+        } finally {
+          setTimeout(() => {
+            document.body.removeChild(iframe);
+            setIsPrinting(false);
+          }, 1000);
+        }
+      }, 500); // give iframe CSS time to apply
+    };
   };
 
   // Reset form
@@ -262,7 +347,7 @@ const CreateQuotation = () => {
 
             {/* Dialog Content - Scrollable Preview */}
             <div className="flex-1 overflow-y-auto p-6 bg-slate-50">
-              <div className="bg-white rounded-lg shadow-lg overflow-hidden max-w-[210mm] mx-auto">
+              <div className="bg-white rounded-lg shadow-lg overflow-hidden max-w-[210mm] mx-auto" style={{ transform: 'none' }}>
                 <QuotationPreview ref={previewRef} formData={formData} />
               </div>
             </div>
@@ -283,12 +368,12 @@ const CreateQuotation = () => {
                 {isPrinting ? (
                   <>
                     <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                    <span>Saving...</span>
+                    <span>Preparing...</span>
                   </>
                 ) : (
                   <>
-                    <Download className="w-4 h-4" />
-                    <span>Save to Gallery</span>
+                    <Printer className="w-4 h-4" />
+                    <span>Print / Save PDF</span>
                   </>
                 )}
               </button>
