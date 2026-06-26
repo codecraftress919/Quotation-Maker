@@ -1,12 +1,16 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ChevronLeft, Eye, RotateCcw, Sun, Sparkles } from 'lucide-react';
+import { ChevronLeft, Eye, RotateCcw, Sun, Sparkles, X, Printer, Download } from 'lucide-react';
 import { motion } from 'framer-motion';
 import QuotationForm from '../components/QuotationForm';
 import QuotationPreview from '../components/QuotationPreview';
+import html2canvas from 'html2canvas';
 
 const CreateQuotation = () => {
   const navigate = useNavigate();
+  const previewRef = useRef(null);
+  const [showPreviewDialog, setShowPreviewDialog] = useState(false);
+  const [isPrinting, setIsPrinting] = useState(false);
 
   // Initial form data
   const initialFormData = {
@@ -37,10 +41,47 @@ const CreateQuotation = () => {
 
   const [formData, setFormData] = useState(initialFormData);
 
-  // Open preview in a new tab
+  // Open preview dialog
   const handlePreview = () => {
-    localStorage.setItem('quotationPreviewData', JSON.stringify(formData));
-    window.open('/preview', '_blank');
+    setShowPreviewDialog(true);
+  };
+
+  // Close preview dialog
+  const handleCloseDialog = () => {
+    setShowPreviewDialog(false);
+  };
+
+  // Print quotation and save to gallery
+  const handlePrint = async () => {
+    if (!previewRef.current || isPrinting) return;
+    setIsPrinting(true);
+
+    try {
+      // Use html2canvas to capture the preview as an image
+      const canvas = await html2canvas(previewRef.current, {
+        scale: 2, // Higher quality
+        useCORS: true,
+        logging: false,
+      });
+
+      // Convert to blob and download
+      canvas.toBlob((blob) => {
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `Quotation-${formData.quotationNumber || 'Draft'}-${Date.now()}.png`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+        setIsPrinting(false);
+      });
+    } catch (error) {
+      console.error('Error generating image:', error);
+      // Fallback to browser print
+      window.print();
+      setIsPrinting(false);
+    }
   };
 
   // Reset form
@@ -195,6 +236,66 @@ const CreateQuotation = () => {
           </button>
         </div>
       </div>
+
+      {/* Preview Dialog Modal */}
+      {showPreviewDialog && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.95 }}
+            className="bg-white rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] flex flex-col"
+          >
+            {/* Dialog Header */}
+            <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200">
+              <div>
+                <h2 className="text-lg font-bold text-slate-800">Quotation Preview</h2>
+                <p className="text-xs text-slate-500">Review and save your quotation</p>
+              </div>
+              <button
+                onClick={handleCloseDialog}
+                className="p-2 hover:bg-slate-100 rounded-xl transition-all cursor-pointer touch-manipulation"
+              >
+                <X className="w-5 h-5 text-slate-500" />
+              </button>
+            </div>
+
+            {/* Dialog Content - Scrollable Preview */}
+            <div className="flex-1 overflow-y-auto p-6 bg-slate-50">
+              <div className="bg-white rounded-lg shadow-lg overflow-hidden max-w-[210mm] mx-auto">
+                <QuotationPreview ref={previewRef} formData={formData} />
+              </div>
+            </div>
+
+            {/* Dialog Footer - Actions */}
+            <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-slate-200 bg-white">
+              <button
+                onClick={handleCloseDialog}
+                className="px-5 py-2.5 text-slate-600 hover:text-slate-800 hover:bg-slate-100 rounded-xl font-semibold text-sm transition-all cursor-pointer touch-manipulation"
+              >
+                Close
+              </button>
+              <button
+                onClick={handlePrint}
+                disabled={isPrinting}
+                className="flex items-center gap-2 bg-gradient-to-r from-primary to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white px-5 py-2.5 rounded-xl font-bold text-sm transition-all shadow-md hover:shadow-lg cursor-pointer touch-manipulation disabled:opacity-60 disabled:cursor-not-allowed"
+              >
+                {isPrinting ? (
+                  <>
+                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                    <span>Saving...</span>
+                  </>
+                ) : (
+                  <>
+                    <Download className="w-4 h-4" />
+                    <span>Save to Gallery</span>
+                  </>
+                )}
+              </button>
+            </div>
+          </motion.div>
+        </div>
+      )}
     </motion.div>
   );
 };
