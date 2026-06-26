@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 50">
+  <rect x="10" y="10" width="30" height="30" rx="4" fill="#E11D48" />
+  <path d="M20 25 L25 20 L30 25 L28 27 L25 24 L22 27 Z" fill="#FFFFFF" />
+  <circle cx="25" cy="27" r="2" fill="#FFFFFF" />
+  <text x="50" y="33" font-family="'Outfit', 'Inter', sans-serif" font-weight="900" font-size="22" fill="#111827" letter-spacing="1">LONG<tspan fill="#E11D48">i</tspan></text>
+</svg>

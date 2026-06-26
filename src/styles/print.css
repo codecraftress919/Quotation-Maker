@@ -1,0 +1,103 @@
+/* Print Styles for A4 Portrait Quotation */
+
+@media print {
+  /* Reset everything hidden first */
+  body * {
+    visibility: hidden;
+  }
+
+  /* Show only the print-container and its children */
+  .print-container,
+  .print-container * {
+    visibility: visible !important;
+  }
+
+  /* Position the print-container to fill the page */
+  .print-container {
+    position: absolute !important;
+    left: 0 !important;
+    top: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    background: #ffffff !important;
+    color: #0f172a !important;
+    box-shadow: none !important;
+  }
+
+  /* A4 Portrait with margins */
+  @page {
+    size: A4 portrait;
+    margin: 10mm 10mm 10mm 10mm;
+  }
+
+  /* Hide all UI chrome */
+  nav,
+  button,
+  input,
+  textarea,
+  select,
+  .sticky,
+  .fixed,
+  .no-print,
+  [role="button"] {
+    display: none !important;
+  }
+
+  /* Force background colors & images */
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    color-adjust: exact !important;
+  }
+
+  /* Typography */
+  body {
+    font-family: 'Inter', -apple-system, sans-serif;
+    font-size: 10pt;
+    line-height: 1.5;
+    background-color: #ffffff !important;
+  }
+
+  /* Tables */
+  table {
+    width: 100% !important;
+    border-collapse: collapse !important;
+  }
+
+  tr {
+    page-break-inside: avoid !important;
+  }
+
+  thead {
+    display: table-header-group !important;
+  }
+
+  /* Partner brands section */
+  .partner-brands-section {
+    page-break-inside: avoid !important;
+  }
+
+  /* Signature */
+  .signature-section {
+    page-break-inside: avoid !important;
+  }
+
+  /* Remove all shadows and rounded corners for clean print */
+  .shadow-sm,
+  .shadow-md,
+  .shadow-lg,
+  .shadow-xl,
+  .shadow-2xl,
+  .shadow-premium,
+  .shadow-soft,
+  .shadow-inner {
+    box-shadow: none !important;
+  }
+
+  /* No scrollbars */
+  ::-webkit-scrollbar {
+    display: none !important;
+  }
+}

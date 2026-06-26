@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 50">
+  <g fill="#0F4C81">
+    <rect x="10" y="12" width="28" height="26" rx="2" stroke="#0F4C81" stroke-width="2" fill="none" />
+    <line x1="24" y1="12" x2="24" y2="38" stroke="#0F4C81" stroke-width="2" />
+    <line x1="10" y1="25" x2="38" y2="25" stroke="#0F4C81" stroke-width="2" />
+  </g>
+  <text x="48" y="32" font-family="'Outfit', 'Inter', sans-serif" font-weight="900" font-size="18" fill="#111827" letter-spacing="0.5">DAH <tspan fill="#0F4C81" font-weight="600">Solar</tspan></text>
+</svg>
