@@ -191,23 +191,48 @@ const EditQuotation = () => {
 
     iframe.onload = () => {
       setTimeout(() => {
-        try {
-          iframe.contentWindow.focus();
-          iframe.contentWindow.print();
-        } catch (e) {
-          console.error('iframe print failed:', e);
-          const win = window.open('', '_blank', 'width=800,height=900');
-          win.document.write(iframeDoc.documentElement.outerHTML);
-          win.document.close();
-          win.focus();
-          win.print();
-          win.close();
-        } finally {
-          setTimeout(() => {
-            document.body.removeChild(iframe);
-            setIsPrinting(false);
-          }, 1000);
+        // Detect mobile device
+        const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+        
+        if (isMobile) {
+          // Mobile: open in new window for better compatibility
+          try {
+            const win = window.open('', '_blank');
+            if (win) {
+              win.document.write(iframeDoc.documentElement.outerHTML);
+              win.document.close();
+              setTimeout(() => {
+                win.focus();
+                win.print();
+              }, 500);
+            } else {
+              console.error('Popup blocked on mobile');
+              alert('Please allow popups to print the quotation');
+            }
+          } catch (e) {
+            console.error('Mobile print failed:', e);
+            alert('Printing failed. Please try again or use a desktop device.');
+          }
+        } else {
+          // Desktop: use iframe print
+          try {
+            iframe.contentWindow.focus();
+            iframe.contentWindow.print();
+          } catch (e) {
+            console.error('iframe print failed:', e);
+            const win = window.open('', '_blank', 'width=800,height=900');
+            win.document.write(iframeDoc.documentElement.outerHTML);
+            win.document.close();
+            win.focus();
+            win.print();
+            win.close();
+          }
         }
+        
+        setTimeout(() => {
+          document.body.removeChild(iframe);
+          setIsPrinting(false);
+        }, 1000);
       }, 500);
     };
   };
