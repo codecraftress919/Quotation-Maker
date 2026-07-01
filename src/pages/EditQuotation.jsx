@@ -60,6 +60,7 @@ const EditQuotation = () => {
       const parsedData = parseQuotationText(text);
 
       console.log('Parsed data:', parsedData);
+      console.log('Discount value:', parsedData.discount);
 
       // Update form data with parsed data
       setFormData({

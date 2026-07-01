@@ -79,8 +79,8 @@ export const parseQuotationText = (text) => {
     });
   }
   
-  // Extract discount
-  const discountMatch = text.match(/DISCOUNT\s*[:]\s*([\d,]+\.?\d*)/i);
+  // Extract discount - handle negative values
+  const discountMatch = text.match(/(?:DISCOUNT|discount)\s*[:\s]*(-?[\d,]+\.?\d*)/i);
   if (discountMatch && discountMatch[1]) {
     parsedData.discount = parseFloat(discountMatch[1].replace(/,/g, '')) || 0;
   }

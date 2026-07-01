@@ -8,7 +8,7 @@ export const calculateSubTotal = (products) => {
 
 export const calculateGrandTotal = (formData) => {
   const subTotal = calculateSubTotal(formData.products);
-  const discount = formData.discount || 0;
+  const discount = Math.abs(formData.discount || 0); // Use absolute value since calculation subtracts it
   const taxRate = formData.taxRate || 0;
   const afterDiscount = subTotal - discount;
   const tax = (afterDiscount * taxRate) / 100;
