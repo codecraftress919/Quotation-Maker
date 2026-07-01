@@ -1,6 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { PlusCircle, Sun, Sparkles, ShieldCheck, ArrowRight, Zap } from 'lucide-react';
+import { PlusCircle, Sun, Sparkles, ShieldCheck, ArrowRight, Zap, FilePen } from 'lucide-react';
 import { motion } from 'framer-motion';
 import heroLogo from '../assets/header.png';
 
@@ -107,6 +107,39 @@ const Dashboard = () => {
               </div>
 
               <div className="bg-white text-primary p-4 rounded-2xl group-hover:translate-x-2 transition-transform shadow-lg self-end sm:self-center shrink-0">
+                <ArrowRight className="w-7 h-7" />
+              </div>
+            </div>
+          </motion.button>
+
+          {/* Edit Existing Quotation — Premium Card */}
+          <motion.button
+            variants={cardVariants}
+            whileHover={{ y: -6, scale: 1.01 }}
+            whileTap={{ scale: 0.97 }}
+            onClick={() => navigate('/edit-quotation')}
+            className="w-full text-left relative overflow-hidden bg-gradient-to-br from-secondary to-emerald-700 text-white p-7 sm:p-10 rounded-3xl shadow-premium cursor-pointer group transition-all"
+          >
+            {/* Background glow */}
+            <div className="absolute right-0 bottom-0 translate-x-12 translate-y-12 w-72 h-72 bg-primary/20 rounded-full filter blur-3xl group-hover:bg-primary/30 transition-all duration-500" />
+            <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 w-48 h-48 bg-white/5 rounded-full filter blur-2xl" />
+
+            <div className="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-6">
+              <div className="space-y-4">
+                <div className="bg-white/15 w-fit p-4 rounded-2xl border border-white/10">
+                  <FilePen className="w-9 h-9 text-accent" />
+                </div>
+                <div>
+                  <h2 className="text-2xl sm:text-3xl font-black tracking-tight">
+                    Edit Existing Quotation
+                  </h2>
+                  <p className="text-sm text-slate-200 mt-2 opacity-90 font-medium max-w-xs">
+                    Upload an existing quotation PDF, edit it, and generate a new quotation.
+                  </p>
+                </div>
+              </div>
+
+              <div className="bg-white text-secondary p-4 rounded-2xl group-hover:translate-x-2 transition-transform shadow-lg self-end sm:self-center shrink-0">
                 <ArrowRight className="w-7 h-7" />
               </div>
             </div>

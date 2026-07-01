@@ -1,11 +1,11 @@
 import React from 'react';
 
 // Brand partner images from root /assets/ folder
-import footer1 from '../../assets/footer1.png';
-import footer2 from '../../assets/footer2.png';
-import footer3 from '../../assets/footer3.png';
-import footer4 from '../../assets/footer4.png';
-import footer5 from '../../assets/footer5.png';
+import footer1 from '../assets/footer1.png';
+import footer2 from '../assets/footer2.png';
+import footer3 from '../assets/footer3.png';
+import footer4 from '../assets/footer4.png';
+import footer5 from '../assets/footer5.png';
 
 const brands = [
   { name: 'JinKO Solar',  src: footer5 },
